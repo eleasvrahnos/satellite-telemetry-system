@@ -82,7 +82,11 @@ If I had more time for this project, I would find another optimization with data
 
 ## Step 5: Real-Time Telemetry and Alerts
 
+Danger Zones:
 
+Altitude, above 350
+Temperature, below -50 or above 50
+battery voltage, above 50
 
 
 
