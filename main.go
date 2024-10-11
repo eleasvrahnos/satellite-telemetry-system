@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -36,7 +37,6 @@ func getTelemetry(c *gin.Context) {
 
     idStr := c.Param("id") // Gets satellite ID from parameter
     var telemetryRecords []models.Telemetry
-    var err error
 
     query := "1=1" // Base for adding conditions (makes adding AND CONDITION easier)
     params := []interface{}{} // Params to collect along the way
@@ -80,13 +80,18 @@ func getTelemetry(c *gin.Context) {
         params = append(params, endTime)
     }
 
-    // Execute the query with the built-up parameters
-    err = database.DB.Where(query, params...).Find(&telemetryRecords).Error
-    if err != nil {
+    // Execute the query with the built-up parameters, using batches
+    var allRecords []models.Telemetry
+    batches := 10 // Size of batches to add to final result, can be changed
+    result := database.DB.Where(query, params...).FindInBatches(&telemetryRecords, batches, func(tx *gorm.DB, batch int) error {
+        allRecords = append(allRecords, telemetryRecords...)
+        return nil
+    })
+    
+    if result.Error != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve records"})
         return
     }
 
-    // Return the resulting telemetry records
-    c.JSON(http.StatusOK, telemetryRecords)
+    c.JSON(http.StatusOK, allRecords)
 }

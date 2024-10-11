@@ -20,12 +20,6 @@ const DataSelection: React.FC<DataSelectionProps> = ({ onSubmit }) => {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); // Stops page refresh
-
-    // Check that at least one field is populated
-    if (!satelliteID && !startDate && !endDate) {
-      alert("Please enter a query before submitting.");
-      return;
-    }
     
     // Check if satelliteID is a valid integer (if defined)
     if (satelliteID) {

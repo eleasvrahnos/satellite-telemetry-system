@@ -55,4 +55,34 @@ For efficiency and scalability, the following have been implemented:
     - There is a trade-off here, since batch insertion uses a local array to accumulate the data, which may lead to local memory overhead depending on the situation. However, I have opted to implement batch insertion, because I made the decision that the benefits of getting data efficiently outweighed using extra memory. The batch size is specified by the user too, so the array will store that amount of data at a maximum, and the minimal memory overhead can therefore still be controlled.
 - Since Step 4 has operators querying by satellite ID and timestamps often, I have created indexes for both the ``satellite_id`` and ``timestamp`` columns, which will make querying by those columns faster.
 
-## Step 4: TBC
+## Step 4: Serving Historic Telemetry Data
+
+For this step, I have created an API coded in Golang using Gin, with one endpoint to serve two types of requests: one where the satellite ID is specified and one where it is not. This is because of how I'm passing the parameters to the backend, with the ID being a route parameter (``/:id``) and the start/end date being query parameters (``?start=``, ``?end=``). Because it is only one function to handle the API requests, I have kept it within the main ``main.go`` file for clarity. 
+
+I have decided to learn enough Golang and Gin for this project because of its widespread use, its efficiency advantages over other backend languages like Python, and because I like picking up new tools as I create a project. While I would not consider myself proficient with the language yet by any means, but I would say I understand the core fundamentals of how Golang and Gin can be used to create API endpoints (error handling, database querying, structs, etc.). I learned Golang and Golang API construction through a combination of YouTube walkthroughs and online resources, some of which I have referenced within the comments of my code.
+
+For the database, I have used the Golang Object Relational Mapper (GORM) to make easy queries for the PostgreSQL database. This choice is mainly for my own convenience, but I also know using tools like GORM will give me more insight to what tools are industry-standard and why they are used. Similarly to the language itself, I now understand the core fundamentals of GORM and how to make basic interactions with a connected database.
+
+For the frontend, I have used React (+ Vite), Tailwind CSS, and Typescript. I am already familiar with these three, so this was a little more straightforward to me to implement. While the project doesn't require a heavy focus on design, I still aimed to make the UI understandable and clean for the user. The following are the main React components used in the application:
+
+- App.tsx - Houses the main application features
+- DataSelection.tsx - A form component that requests the user for a satellite ID and start/end date
+- DataTable.tsx - A table component that presents a general form for the data table displayed
+
+These components combine to make the whole application, and it is made with the integration of Step 5 in mind to make it seamless. Concepts used within my React code include ``useState`` to keep track of button and data states, interfaces to define types clearly, and the usage of an outside library called ``DatePicker`` to select datetimes in a clean way.
+
+For optimizations within this step, my focus was mainly towards the backend, since the main thing to optimize within this application was data insertion and retrieval. Data insertion was covered in previous steps, so I had to figure out ways to optimize my queries for any given parameters. Some optimizations I have implemented are:
+
+- Using GORM to make only one query for each user request, regardless of what kind of parameters were put in.
+  - To do this, I build my query and parameters gradually based on what the user entered, and make one query at the end.
+- From step 3, I have implemented indexing on my PostgreSQL table for the two relevant columns.
+- Similar to step 3, I have implemented batch retrieval. From a specified batch size, the data will be collected in batches and then return to the user. This will reduce memory usage for the overall application.
+
+If I had more time for this project, I would find another optimization with data retrieval through sending the batches separately, so that the user receives previous batches faster before others have time to load. This would get at least some data back to the user faster, so the user can view that data while other batches are loading in the background. I would also add pagination to both go with the data retrieval optimization and for UX purposes.
+
+## Step 5: Real-Time Telemetry and Alerts
+
+
+
+
+
