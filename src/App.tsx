@@ -84,7 +84,7 @@ function App() {
   return (
     <div className="flex justify-center flex-col items-center">
       <div className="text-5xl black font-bold mt-10">
-        Satellite Telemetry Simulation
+        Satellite Telemetry System
       </div>
       <div className="flex gap-10 justify-center pt-10">
         <button
@@ -110,7 +110,7 @@ function App() {
       </div>
       <div className="my-10">
         {seePastData && <DataSelection onSubmit={handleFormSubmit} />}
-        {seeTable && <DataTable data={currData} live={false} />}
+        {seeTable && <DataTable data={currData || []} live={false} />}
         {seeLiveTable && <h2 className="font-bold flex justify-center">Live Feed Generating...</h2>}
         {liveFeed.length > 0 && seeLiveTable && <DataTable data={liveFeed} live={true} />}
       </div>
