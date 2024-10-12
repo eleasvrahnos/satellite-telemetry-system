@@ -12,7 +12,7 @@ This process will involve creating the PostgreSQL database on the user's end, se
 
 1) Restoring the database from ``sample_telemetry.sql`` and setting up the ``.env`` file
 
-I have included a backup of a PostgreSQL database to use, including the necessary schemas and sample data of almost 2000 random entries for testing. The user must first restore the database on their end, most likely with the pgAdmin tool that comes with PostgreSQL. Additionally included in the repo is ``.env.example``, which the user should modify to fit their user and password information. Put all of the given info in a file caled ``.env``, and if necessary, change the other values to fit how the database will be accessed.
+I have included a backup of a PostgreSQL database to use, including the necessary schemas and sample data of almost 2000 random entries for testing. The user must first restore the database on their end, most likely with the pgAdmin tool that comes with PostgreSQL. Additionally included in the repo is ``.env.example``, which the user should modify to fit their user and password information. Put all of the given info in a file called ``.env``, and if necessary, change the other values to fit how the database will be accessed.
 
 2) First terminal: Run ``python src/api/server.py``
 
