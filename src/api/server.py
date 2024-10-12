@@ -96,5 +96,4 @@ async def main():
         await asyncio.gather(*[asyncio.to_thread(start_port_listener, port) for port in satellite_ports])
 
 # Run event loop
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())

@@ -1,7 +1,37 @@
 # Satellite Telemetry System - Eleas Vrahnos
 
-In this task, I have implemented all 5 steps outlined. Below, I have outlined my thought process and implementation strategies for each step.
-Included are the **bonus tasks** of containerization and implementing telemetry reading from multiple UDP ports.
+In this task, I have implemented all 5 steps outlined to create a mock Satellite Telemetry System. Below, I have outlined my thought process and implementation strategies for each step. Included is the **bonus task** of implementing telemetry reading from multiple UDP ports.
+
+I have attempted to implement containerization using Docker, but I was not able to get my database container to connect correctly (most likely a port issue). My original process was to create separate containers for each entity running: the Python scripts container, the React frontend container, the Go API container, and the database container. My plan was to get each individually working, and then combining them all into one supercontainer with Docker Compose. I made ``Dockerfile``s for all four containers, and then built the image alongside a ``docker-compose.yaml`` file, indicating how to wrap the containers up. However, I have spent a lot of time trying to debug the database container's issue, and could not figure out an answer. Therefore, I am deciding to leave it out of this implementation for clarity of the overall project. However, I definitely would implement it if I could, due to the benefits of containerizing an application, so that any device can run it regardless of requirements or specifications.
+
+One of the resources used for this: https://www.youtube.com/watch?v=J2dB96MUL8s
+
+## How to Run the Application
+
+This process will involve creating the PostgreSQL database on the user's end, setting up environment variables, as well as opening four (or more) separate terminals to run programs.
+
+1) Restoring the database from ``sample_telemetry.sql`` and setting up the ``.env`` file
+
+I have included a backup of a PostgreSQL database to use, including the necessary schemas and sample data of almost 2000 random entries for testing. The user must first restore the database on their end, most likely with the pgAdmin tool that comes with PostgreSQL. Additionally included in the repo is ``.env.example``, which the user should modify to fit their user and password information. Put all of the given info in a file caled ``.env``, and if necessary, change the other values to fit how the database will be accessed.
+
+2) First terminal: Run ``python src/api/server.py``
+
+The first thing to run is the Python server that both intakes the random generated data and sends them to the React frontend.
+
+3) Second terminal: Run ``go run main.go``
+
+This runs the backend Go server that houses the API to interact with the database.
+
+4) Third terminal: Run ``npm i``, then run``npm run dev``
+
+This installs necessary dependencies and runs the React frontend that the user can interact with. The link to it should be found at ``http://localhost:5173``.
+
+5) Fourth terminal (and possibly more): Run ``python src/api/client.py``
+
+Finally, this will run the client-side Python script that generates the random data and sends them to the server. This is ran last so that all the other components are prepared for the incoming data. More terminals can be prepared to test the **bonus task** of simulating multiple satellite telemetry streams. Simply change the variable ``udp_port`` to any port listed in ``server.py``'s ``satellite_ports`` (which also can be modified) and run the same command in another terminal.
+
+- NOTE: Tools/Frameworks used include Tailwind CSS, TypeScript, React+Vite, PostgreSQL, Go, GORM, Gin, and Python (attempted Docker)
+
 
 ## Step 1: Sending Satellite Telemetry Packets Over UDP
 
@@ -21,9 +51,9 @@ This code is located in ``client.py``, and combined with Step 2, will be able to
 
 ## Step 2: Telemetry Ingestion Service
 
-For this step, I have created a new file, ``server.py``, to allow intaking all data sent through to a server socket. To support the **bonus task** of receiving data from multiple UDP ports, the file creates a "thread" for each of the ports (in the sample implementation, 3 of them) through ``asyncio`` methods, and listens for any data sent through any of the ports, while noting what port (satellite) the data came from.
+For this step, I have created a new file, ``server.py``, to allow intaking all data sent through to a server socket. To support the **bonus task** of receiving data from multiple UDP ports, the file creates an instance for each of the ports (in the sample implementation, 3 of them) through ``asyncio`` methods, and listens for any data sent through any of the ports, while noting what port (satellite) the data came from.
 
-When I was first thinking about how to tackle simulating multiple UDP ports, I thought about using plain multithreading. I could simulate one thread per port and then combine them all. However, I looked more into how that would affect scalability and efficiency. I knew multithreading can be optimized on, since its eventual resource overhead and blocking calls could negatively affect the hypothetical "million packets a second" scenario. After doing some resarch, I found that the ``asyncio`` module supports single-thread event loops, which would help alleviate this problem. It uses coroutines to switch between routines within one thread. Although this took a lot of research to be able to implement correctly, it will cause less memory overhead for bigger-scale versions.
+When I was first thinking about how to tackle simulating multiple UDP ports, I thought about using plain multithreading. I could simulate one thread per port and then combine them all. However, I looked more into how that would affect scalability and efficiency. I knew multithreading can be optimized on, since its eventual resource overhead and blocking calls could negatively affect the hypothetical "million packets a second" scenario. After doing some resarch, I found that the ``asyncio`` module supports single-thread event loops, which would help alleviate this problem. It uses coroutines to switch between tasks within one thread. Although this took a lot of research to be able to implement correctly, it will cause less memory overhead for larger-scale versions.
 
 Furthermore, I have made some small design choices that can help affect readability and performance, including:
 
@@ -57,7 +87,7 @@ I have decided to learn enough Golang and Gin for this project because of its wi
 
 For the database, I have used the Golang Object Relational Mapper (GORM) to make easy queries for the PostgreSQL database. This choice is mainly for my own convenience, but I also know using tools like GORM will give me more insight to what tools are industry-standard and why they are used. Similarly to the language itself, I now understand the core fundamentals of GORM and how to make basic interactions with a connected database.
 
-For the frontend, I have used React (+ Vite), Tailwind CSS, and Typescript. I am already familiar with these three, so this was a little more straightforward to me to implement. While the project doesn't require a heavy focus on design, I still aimed to make the UI understandable and clean for the user. The following are the main React components used in the application:
+For the frontend, I have used React (+ Vite, since the app size would be more compact), Tailwind CSS, and Typescript. I am already familiar with these three, so this was a little more straightforward to me to implement. While the project doesn't require a heavy focus on design, I still aimed to make the UI understandable and clean for the user. The following are the main React components used in the application:
 
 - App.tsx - Houses the main application features
 - DataSelection.tsx - A form component that requests the user for a satellite ID and start/end date
@@ -70,7 +100,7 @@ For optimizations within this step, my focus was mainly towards the backend, sin
 - Using GORM to make only one query for each user request, regardless of what kind of parameters were put in.
   - To do this, I built my query and parameters gradually based on what the user entered, and make one query at the end.
 - From step 3, I have implemented indexing on my PostgreSQL table for the two relevant columns.
-- Similar to step 3, I have implemented batch retrieval. From a specified batch size, the data will be collected in batches and then return to the user. This will reduce memory usage for the overall application.
+- Similar to step 3, I have implemented batch retrieval. From a specified batch size, the data will be collected in batches and then return to the user.
 
 If I had more time for this project, I would find another optimization with data retrieval through sending the batches separately, so that the user receives previous batches faster before others have time to load. This would get at least some data back to the user faster, so the user can view that data while other batches are loading in the background. I would also add pagination to both go with the data retrieval optimization and for UX purposes.
 
@@ -78,7 +108,7 @@ If I had more time for this project, I would find another optimization with data
 
 After slightly adjusting and finalizing how the UI works, I got to work on creating the live feed table.
 
-My first question was how to get the data to the React frontend in the most efficient way possible. One way would be to wait after a piece of data is submitted into the database, and then use some sort of loop to regularly fetch recently-added entries. I chose to stay away from this for three reasons:
+My first question was how to get the data to the React frontend in the most efficient way possible. One way would be to wait after a piece of data is submitted into the database, and then use some sort of loop to regularly fetch recently-added entries. I chose to stay away from this for two reasons:
 
 - Regularly fetching new entries would cause a lot of unnecessary queries to the backend, possibly reducing performance.
 - We might not need the database as a middleman; There might be a way of just sending the data to the frontend directly after ``server.py`` receives it.
@@ -87,7 +117,7 @@ As a result, I ended on combining two previous concepts: sockets and coroutines.
 
 With this, I could forward each piece of data directly to the frontend to avoid any extra queries. The only thing I had to keep in mind is that I could only do this with entries that were confirmed to have been added to the database, since entries that have not been added to the database probably should not count towards the live feed either.
 
-To send the data over, I encoded the telemetry values and sent them over via socket connection. The React frontend then decodes it and adds it to the table using ``useEffect``, which I created so that it occurs every render. In this mini implementation, the batch insertion from Step 3 makes it looks like the data is batch inserted into the live feed. As a result, this causes the live feed to look slow with adding data. However, if we take into account that millions of packets will be incoming, the live feed's batch insertion will not be noticeable and the live feed will basically look as normal.
+To send the data over, I encoded the telemetry values and sent them over via socket connection. The React frontend then decodes it and adds it to the table using ``useEffect``, which I created so that it occurs every render. In this mini implementation, the batch insertion from Step 3 makes it looks like the data is batch inserted into the live feed. As a result, this causes the live feed to look slow with adding data. However, if we take into account that millions of packets will be incoming, the live feed's batch insertion will not be noticeable and the live feed insertions will look normal.
 
 As for the table itself, I chose to not include the row ID column, since that is database specific (we have skipped using the database) and it is not as important as the telemetry values themselves. For alerting the operator of danger zones, I simply made the background color of the cell red for values that I deemed to be in the danger zone. Below were my definitions of the danger zone (randomly but intuitively picked):
 
