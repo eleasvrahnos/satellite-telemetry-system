@@ -1,4 +1,4 @@
-# Satellite Telemetry System - Eleas Vrahnos
+# Satellite Telemetry System
 
 In this task, I have implemented all 5 steps outlined to create a mock Satellite Telemetry System. Below, I have outlined my thought process and implementation strategies for each step. Included is the **bonus task** of implementing telemetry reading from multiple UDP ports.
 
